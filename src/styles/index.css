@@ -652,10 +652,49 @@ p {
   gap: 6px;
 }
 
-/* With four or more, wrap to two columns and let an odd last card run full
-   width so the board never ends on a half-empty row. */
+/* With four or more, the tall cards would eat the whole screen, so each one
+   collapses to a compact row: name and break on the left, score on the right.
+   An odd last card runs full width so the board never ends on a half-empty
+   row, and the whole block scrolls if a very large group is playing. */
+.scorers[data-count='many'] {
+  max-height: 34dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.scorers[data-count='many'] .scorer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'top score'
+    'sub score';
+  align-items: center;
+  gap: 0 8px;
+  padding: 8px 11px;
+}
+
 .scorers[data-count='many'] .scorer:last-child:nth-child(odd) {
   grid-column: 1 / -1;
+}
+
+.scorers[data-count='many'] .scorer__top {
+  grid-area: top;
+}
+
+.scorers[data-count='many'] .scorer__sub {
+  grid-area: sub;
+  height: auto;
+  min-height: 14px;
+}
+
+.scorers[data-count='many'] .scorer__score {
+  grid-area: score;
+  margin: 0;
+  font-size: 30px;
+}
+
+.scorers[data-count='many'] .pop {
+  top: 3px;
 }
 
 .scorer {
