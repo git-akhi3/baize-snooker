@@ -36,6 +36,7 @@ function emptyStats() {
     breaks: [],
     highestBreak: 0,
     ballCounts: {},
+    foulBalls: {},
     timeAtTable: 0,
     results: [], // newest first: { gameId, won, score, ts, margin }
     bestFrameScore: 0,
@@ -76,6 +77,9 @@ export function playerStats(playerId, games) {
     if (mine.score > s.bestFrameScore) s.bestFrameScore = mine.score
     for (const [ball, n] of Object.entries(mine.ballCounts)) {
       s.ballCounts[ball] = (s.ballCounts[ball] || 0) + n
+    }
+    for (const [key, n] of Object.entries(mine.foulBalls)) {
+      s.foulBalls[key] = (s.foulBalls[key] || 0) + n
     }
     s.results.push({
       gameId: game.id,
@@ -290,6 +294,27 @@ export function ballBreakdown(counts) {
     ball,
     count: counts?.[ball.id] || 0,
     share: total ? (counts?.[ball.id] || 0) / total : 0,
+  }))
+}
+
+/**
+ * Fouls grouped by the ball that caused them, most frequent first. A
+ * `foulBalls` map of {ballId | 'general': count} comes out of deriveState;
+ * this turns it into rows a screen can render directly, with 'general'
+ * (no specific ball) always sorted to the end.
+ */
+export function foulBreakdown(foulBalls) {
+  const entries = Object.entries(foulBalls || {})
+  entries.sort((a, b) => {
+    if (a[0] === 'general') return 1
+    if (b[0] === 'general') return -1
+    return b[1] - a[1]
+  })
+  return entries.map(([key, count]) => ({
+    key,
+    ball: key === 'general' ? null : BALL_BY_ID[key],
+    label: key === 'general' ? 'No ball involved' : BALL_BY_ID[key]?.label,
+    count,
   }))
 }
 

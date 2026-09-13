@@ -100,6 +100,19 @@ export function createGame({ players, mode = 'casual', settings = {} }) {
   }
 }
 
+/**
+ * Points conceded for a foul involving `ballId` (the ball that determines the
+ * penalty — the one on, the one hit first, or the one potted illegally).
+ * The minimum foul is 4, so a red/yellow/green/brown foul is still 4; a foul
+ * involving the blue, pink or black is worth that ball's own value.
+ * `ballId` may be omitted for a foul with no specific ball (e.g. a miss with
+ * no contact, or a technical foul) — that is always worth the minimum, 4.
+ */
+export function foulValue(ballId) {
+  const ball = ballId ? BALL_BY_ID[ballId] : null
+  return ball ? Math.max(4, ball.value) : 4
+}
+
 /** Who receives the points for a foul committed by `strikerId`. */
 export function foulBeneficiaries(game, strikerId) {
   const ids = game.players.map((p) => p.id)
@@ -136,6 +149,10 @@ export function deriveState(game) {
       breaks: [],
       highestBreak: 0,
       ballCounts: {},
+      // Which ball each of this player's fouls was on — 'general' when no
+      // specific ball applied. Lets history and stats show *what* went wrong,
+      // not just the point value.
+      foulBalls: {},
       pointsFromBalls: 0,
       pointsFromFouls: 0,
       pointsConceded: 0,
@@ -230,6 +247,8 @@ export function deriveState(game) {
       per[pid].fouls += 1
       per[pid].shots += 1
       per[pid].pointsConceded += ev.value
+      const foulKey = ev.ball || 'general'
+      per[pid].foulBalls[foulKey] = (per[pid].foulBalls[foulKey] || 0) + 1
       if (ev.rule === 'deduct') {
         per[pid].score -= ev.value
       } else {
@@ -329,7 +348,7 @@ export function describeEvent(ev, game) {
     case 'pot':
       return name + ' potted the ' + (BALL_BY_ID[ev.ball]?.label.toLowerCase() ?? 'ball')
     case 'foul':
-      return name + ' fouled'
+      return name + ' fouled' + (ev.ball ? ' — ' + BALL_BY_ID[ev.ball]?.label.toLowerCase() : '')
     case 'miss':
       return name + ' missed'
     case 'safe':

@@ -159,7 +159,9 @@ export default function Settings() {
           <p className="meta dim" style={{ marginTop: 16 }}>
             In a full frame, a red is followed by a colour, which is respotted while reds remain.
             Once the last red and its colour are gone, the colours are cleared yellow through black.
-            A foul is worth four points, or the value of the ball involved if that is higher.
+            When you record a foul, pick the ball that decides the penalty — the one on, the one hit
+            first, or the one potted. The minimum is four points; a foul on the blue, pink or black
+            is worth that ball's own value instead.
           </p>
         </div>
       </section>

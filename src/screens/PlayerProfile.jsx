@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../store/AppStore.jsx'
-import { achievementsFor, ballBreakdown, playerStats, rivalsFor } from '../lib/stats.js'
+import { achievementsFor, ballBreakdown, foulBreakdown, playerStats, rivalsFor } from '../lib/stats.js'
 import { formatCompactDuration, plural, relativeDay } from '../lib/format.js'
 import Icon from '../components/Icon.jsx'
 import { Avatar, Ball, Empty, FormDots, Sheet, Tile } from '../components/ui.jsx'
@@ -46,6 +46,7 @@ export default function PlayerProfile() {
 
   const earned = trophies.filter((t) => t.earned)
   const breakdown = ballBreakdown(stats.ballCounts).filter((b) => b.count > 0)
+  const fouls = foulBreakdown(stats.foulBalls)
   const bestRival = rivals[0]
 
   return (
@@ -141,6 +142,36 @@ export default function PlayerProfile() {
                     </span>
                     <span className="num meta" style={{ width: 28, textAlign: 'right' }}>
                       {count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {fouls.length ? (
+            <section style={{ marginTop: 28 }}>
+              <div className="section-head">
+                <h2>Fouls</h2>
+                <span className="meta dim">{stats.fouls} total</span>
+              </div>
+              <div className="panel panel--flush">
+                {fouls.map((f) => (
+                  <div className="list-row" key={f.key}>
+                    {f.ball ? (
+                      <Ball ball={f.ball} size={16} />
+                    ) : (
+                      <span
+                        style={{ width: 16, display: 'grid', placeItems: 'center', color: 'var(--faint)' }}
+                      >
+                        <Icon name="close" size={13} />
+                      </span>
+                    )}
+                    <span className="grow" style={{ fontSize: 14 }}>
+                      {f.label}
+                    </span>
+                    <span className="num meta" style={{ fontWeight: 600 }}>
+                      {f.count}
                     </span>
                   </div>
                 ))}

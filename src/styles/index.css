@@ -1132,6 +1132,51 @@ p {
 }
 
 /* --------------------------------------------------------------------------
+   Foul picker — pick the ball that decides the penalty, rather than an
+   abstract point value, so the record shows what actually happened.
+   -------------------------------------------------------------------------- */
+
+.foul-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.foul-grid__ball {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  transition: transform 0.13s var(--ease), border-color 0.16s var(--ease), background 0.16s var(--ease);
+}
+
+.foul-grid__ball:active {
+  transform: scale(0.95);
+  background: var(--surface-2);
+}
+
+.foul-grid__ball .ball {
+  --size: 38px;
+}
+
+.foul-grid__label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--cream-2);
+}
+
+.foul-grid__pts {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--danger);
+  line-height: 1;
+}
+
+/* --------------------------------------------------------------------------
    Sheet (bottom modal)
    -------------------------------------------------------------------------- */
 

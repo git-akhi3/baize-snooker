@@ -3,12 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../store/AppStore.jsx'
 import {
   BALL_BY_ID,
+  BALLS,
   COLOURS,
   FOUL_RULES,
   MODES,
   deriveState,
   describeEvent,
   foulBeneficiaries,
+  foulValue,
   makeEvent,
   milestoneFor,
 } from '../lib/snooker.js'
@@ -16,13 +18,6 @@ import { formatDuration, formatTime } from '../lib/format.js'
 import Icon from '../components/Icon.jsx'
 import { Avatar, Ball, Sheet } from '../components/ui.jsx'
 import { useToast } from '../components/Toasts.jsx'
-
-const FOUL_OPTIONS = [
-  { value: 4, note: 'Standard' },
-  { value: 5, note: 'Blue' },
-  { value: 6, note: 'Pink' },
-  { value: 7, note: 'Black' },
-]
 
 export default function Play() {
   const { id } = useParams()
@@ -94,14 +89,15 @@ export default function Play() {
   )
 
   const commitFoul = useCallback(
-    (value) => {
+    (ballId) => {
       if (!game || !state) return
       const striker = state.currentPlayerId
       pushEvent(
         game.id,
         makeEvent('foul', {
           playerId: striker,
-          value,
+          ball: ballId || null,
+          value: foulValue(ballId),
           rule: game.settings.foulRule,
           beneficiaries: foulBeneficiaries(game, striker),
         }),
@@ -262,7 +258,7 @@ export default function Play() {
               const p = players.find((x) => x.id === ev.playerId)
               return (
                 <div className="feed__row" key={ev.id}>
-                  {ev.type === 'pot' ? (
+                  {ev.type === 'pot' || (ev.type === 'foul' && ev.ball) ? (
                     <Ball ball={ev.ball} size={16} />
                   ) : (
                     <span
@@ -380,24 +376,34 @@ export default function Play() {
         onClose={() => setSheet(null)}
         title="Foul"
         subtitle={
-          game.settings.foulRule === 'deduct'
+          'Which ball decides the penalty — the one on, the one hit first, or the one potted. ' +
+          (game.settings.foulRule === 'deduct'
             ? (current?.name ?? 'The striker') + ' loses the points.'
-            : 'Points go to ' + FOUL_RULES[game.settings.foulRule].label.toLowerCase() + '.'
+            : 'Points go to ' + FOUL_RULES[game.settings.foulRule].label.toLowerCase() + '.')
         }
       >
-        <div className="stack-8 stack">
-          {FOUL_OPTIONS.map((f) => (
-            <button key={f.value} className="btn btn--block btn--lg" onClick={() => commitFoul(f.value)}>
-              <span className="grow" style={{ textAlign: 'left' }}>
-                {f.value} points
-              </span>
-              <span className="dim" style={{ fontWeight: 500 }}>
-                {f.note}
-              </span>
+        <div className="foul-grid">
+          {BALLS.map((b) => (
+            <button key={b.id} className="foul-grid__ball" onClick={() => commitFoul(b.id)}>
+              <Ball ball={b} />
+              <span className="foul-grid__label">{b.label}</span>
+              <span className="foul-grid__pts">{foulValue(b.id)}</span>
             </button>
           ))}
         </div>
-        <button className="btn btn--ghost btn--block" style={{ marginTop: 12 }} onClick={() => setSheet(null)}>
+        <button
+          className="btn btn--block btn--lg"
+          style={{ marginTop: 14 }}
+          onClick={() => commitFoul(null)}
+        >
+          <span className="grow" style={{ textAlign: 'left' }}>
+            No ball involved
+          </span>
+          <span className="dim" style={{ fontWeight: 500 }}>
+            4 points
+          </span>
+        </button>
+        <button className="btn btn--ghost btn--block" style={{ marginTop: 8 }} onClick={() => setSheet(null)}>
           Cancel
         </button>
       </Sheet>

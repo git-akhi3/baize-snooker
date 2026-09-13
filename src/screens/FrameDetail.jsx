@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useStore } from '../store/AppStore.jsx'
-import { gameState, ballBreakdown } from '../lib/stats.js'
+import { gameState, ballBreakdown, foulBreakdown } from '../lib/stats.js'
 import { BALL_BY_ID, FOUL_RULES, MODES, describeEvent } from '../lib/snooker.js'
 import { formatDate, formatShortDuration, formatTime, pct, plural } from '../lib/format.js'
 import Icon from '../components/Icon.jsx'
@@ -146,7 +146,7 @@ export default function FrameDetail() {
           <div className="stack">
             {[...game.events].reverse().map((ev) => (
               <div className="feed__row" key={ev.id}>
-                {ev.type === 'pot' ? (
+                {ev.type === 'pot' || (ev.type === 'foul' && ev.ball) ? (
                   <Ball ball={ev.ball} size={16} />
                 ) : (
                   <span
@@ -223,6 +223,7 @@ export default function FrameDetail() {
 
 function PlayerFrameDetail({ stats }) {
   const breakdown = ballBreakdown(stats.ballCounts).filter((b) => b.count > 0)
+  const fouls = foulBreakdown(stats.foulBalls)
   const topBreaks = [...stats.breaks].sort((a, b) => b - a).slice(0, 3)
   return (
     <div className="stack stack-16">
@@ -258,6 +259,33 @@ function PlayerFrameDetail({ stats }) {
                 </span>
                 <span className="num meta" style={{ width: 20, textAlign: 'right' }}>
                   {count}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {fouls.length ? (
+        <div>
+          <div className="label" style={{ marginBottom: 10 }}>
+            Fouls
+          </div>
+          <div className="stack stack-8">
+            {fouls.map((f) => (
+              <div className="row" key={f.key} style={{ gap: 10 }}>
+                {f.ball ? (
+                  <Ball ball={f.ball} size={16} />
+                ) : (
+                  <span
+                    style={{ width: 16, display: 'grid', placeItems: 'center', color: 'var(--faint)' }}
+                  >
+                    <Icon name="close" size={13} />
+                  </span>
+                )}
+                <span className="meta grow">{f.label}</span>
+                <span className="num meta" style={{ fontWeight: 600 }}>
+                  {f.count}
                 </span>
               </div>
             ))}
